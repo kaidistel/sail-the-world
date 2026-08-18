@@ -16,16 +16,82 @@ window.SAIL_HARBORS=[
 {name:'Helgoland Südhafen',lat:54.17125,lon:7.89920,heading:350}
 ];
 
-// The custom boat asset is upright now but its visual bow axis is 90° off
-// from the simulator's navigation heading. Apply only a horizontal heading
-// correction; roll/pitch and the model's Z-up orientation remain untouched.
-if(window.Cesium && Cesium.Transforms && !window.__SAIL_BOAT_HEADING_PATCH){
-  window.__SAIL_BOAT_HEADING_PATCH=true;
-  const originalHprToFixed=Cesium.Transforms.headingPitchRollToFixedFrame;
-  Cesium.Transforms.headingPitchRollToFixedFrame=function(origin,hpr,ellipsoid,fixedFrameTransform,result){
-    if(hpr){
-      hpr=new Cesium.HeadingPitchRoll(hpr.heading+Cesium.Math.PI_OVER_TWO,hpr.pitch,hpr.roll);
+(function(){
+if(!window.Cesium||window.__SAIL_RUNTIME_PATCH_V3)return;
+window.__SAIL_RUNTIME_PATCH_V3=true;
+
+// Boat: previous +90° correction made the yacht upright but visually backwards.
+// Add another 180° around the local vertical axis only.
+const originalHprToFixed=Cesium.Transforms.headingPitchRollToFixedFrame;
+Cesium.Transforms.headingPitchRollToFixedFrame=function(origin,hpr,ellipsoid,fixedFrameTransform,result){
+  if(hpr){hpr=new Cesium.HeadingPitchRoll(hpr.heading-Cesium.Math.PI_OVER_TWO,hpr.pitch,hpr.roll);}
+  return originalHprToFixed.call(this,origin,hpr,ellipsoid,fixedFrameTransform,result);
+};
+
+// Ask Cesium for more surrounding terrain/imagery before it becomes visible.
+// This costs some extra bandwidth/RAM but makes fast boating much less pop-in heavy.
+try{
+  Cesium.RequestScheduler.maximumRequests=100;
+  Cesium.RequestScheduler.maximumRequestsPerServer=12;
+}catch(_){ }
+
+// Patch Viewer construction so every instance gets the same streaming settings.
+try{
+  const NativeViewer=Cesium.Viewer;
+  Cesium.Viewer=new Proxy(NativeViewer,{
+    construct(Target,args,newTarget){
+      const viewer=Reflect.construct(Target,args,newTarget);
+      try{
+        const globe=viewer.scene.globe;
+        globe.maximumScreenSpaceError=1.15;
+        globe.preloadAncestors=true;
+        globe.preloadSiblings=true;
+        if('tileCacheSize' in globe) globe.tileCacheSize=500;
+        viewer.scene.fog.density=0.000035;
+      }catch(_){ }
+
+      // Subtle moving wave bands around the camera. These are deliberately
+      // blue/grey translucent highlights, not the old white grid lines.
+      try{
+        const waveMats=[];
+        const waveCount=22;
+        for(let i=0;i<waveCount;i++){
+          const mat=new Cesium.ColorMaterialProperty(new Cesium.Color(.72,.88,.92,0));
+          waveMats.push(mat);
+          viewer.entities.add({
+            position:new Cesium.CallbackProperty(function(){
+              const carto=Cesium.Cartographic.fromCartesian(viewer.camera.positionWC);
+              if(!carto)return Cesium.Cartesian3.ZERO;
+              const sea=+(document.getElementById('sea')?.value||2);
+              const t=performance.now()/1000;
+              const band=i-waveCount/2;
+              const phase=t*(1.4+sea*.12)+i*.74;
+              const forward=band*13 + Math.sin(phase)*8;
+              const side=Math.sin(i*1.91+t*.18)*95;
+              const hd=viewer.camera.heading||0;
+              const north=forward*Math.cos(hd)-side*Math.sin(hd);
+              const east=forward*Math.sin(hd)+side*Math.cos(hd);
+              const lat=carto.latitude*180/Math.PI+north/111320;
+              const lon=carto.longitude*180/Math.PI+east/(111320*Math.cos(carto.latitude));
+              return Cesium.Cartesian3.fromDegrees(lon,lat,.16+.025*Math.sin(phase));
+            },false),
+            ellipse:{
+              semiMajorAxis:new Cesium.CallbackProperty(function(){const sea=+(document.getElementById('sea')?.value||2);return 18+sea*5+(i%4)*6;},false),
+              semiMinorAxis:new Cesium.CallbackProperty(function(){const sea=+(document.getElementById('sea')?.value||2);return .55+sea*.22+(i%3)*.18;},false),
+              height:.17,
+              rotation:(i%5)*.13,
+              material:mat
+            }
+          });
+        }
+        viewer.scene.preRender.addEventListener(function(){
+          const sea=+(document.getElementById('sea')?.value||2);
+          const base=sea===0?0:Math.min(.085,.015+sea*.012);
+          waveMats.forEach((m,i)=>m.color.setValue(new Cesium.Color(.72,.88,.92,base*(.55+(i%4)*.12))));
+        });
+      }catch(_){ }
+      return viewer;
     }
-    return originalHprToFixed.call(this,origin,hpr,ellipsoid,fixedFrameTransform,result);
-  };
-}
+  });
+}catch(_){ }
+})();
