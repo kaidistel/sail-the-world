@@ -16,50 +16,129 @@ jobs:
         run: |
           python3 - <<'PY'
           import json,struct,base64
+
           def geom(taper=False):
-              wf=.06 if taper else 1.0
-              v=[[-.5,-.5,-.5],[-.5,.5,-.5],[-.5,.5,.5],[-.5,-.5,.5],[.5,-wf/2,-.5],[.5,wf/2,-.5],[.5,wf/2,.5],[.5,-wf/2,.5]]
+              wf=.05 if taper else 1.0
+              v=[[-.5,-.5,-.5],[-.5,.5,-.5],[-.5,.5,.5],[-.5,-.5,.5],
+                 [.5,-wf/2,-.5],[.5,wf/2,-.5],[.5,wf/2,.5],[.5,-wf/2,.5]]
               i=[0,1,2,0,2,3,4,7,6,4,6,5,0,4,5,0,5,1,3,2,6,3,6,7,1,5,6,1,6,2,0,3,7,0,7,4]
               return v,i
+
           blob=b''; views=[]; acc=[]; ga=[]
           for v,i in [geom(False),geom(True)]:
-              pb=struct.pack('<%sf'%(len(v)*3),*[c for q in v for c in q]); ib=struct.pack('<%sH'%len(i),*i)
+              pb=struct.pack('<%sf'%(len(v)*3),*[c for q in v for c in q])
+              ib=struct.pack('<%sH'%len(i),*i)
               po=len(blob); blob+=pb; io=len(blob); blob+=ib
               pv=len(views); views.append({'buffer':0,'byteOffset':po,'byteLength':len(pb),'target':34962})
               iv=len(views); views.append({'buffer':0,'byteOffset':io,'byteLength':len(ib),'target':34963})
               pa=len(acc); acc.append({'bufferView':pv,'componentType':5126,'count':8,'type':'VEC3','min':[-.5,-.5,-.5],'max':[.5,.5,.5]})
-              ia=len(acc); acc.append({'bufferView':iv,'componentType':5123,'count':36,'type':'SCALAR'}); ga.append((pa,ia))
+              ia=len(acc); acc.append({'bufferView':iv,'componentType':5123,'count':36,'type':'SCALAR'})
+              ga.append((pa,ia))
+
           mats=[
-            {'name':'white','pbrMetallicRoughness':{'baseColorFactor':[.96,.97,.98,1],'metallicFactor':.03,'roughnessFactor':.32}},
-            {'name':'black','pbrMetallicRoughness':{'baseColorFactor':[.012,.02,.025,1],'metallicFactor':.08,'roughnessFactor':.28}},
-            {'name':'glass','pbrMetallicRoughness':{'baseColorFactor':[.01,.06,.085,.9],'metallicFactor':.04,'roughnessFactor':.14},'alphaMode':'BLEND'},
-            {'name':'gold','pbrMetallicRoughness':{'baseColorFactor':[.96,.6,.02,1],'metallicFactor':.03,'roughnessFactor':.34}},
-            {'name':'orange','pbrMetallicRoughness':{'baseColorFactor':[1,.16,.02,1],'metallicFactor':.02,'roughnessFactor':.34}},
-            {'name':'metal','pbrMetallicRoughness':{'baseColorFactor':[.55,.6,.62,1],'metallicFactor':.35,'roughnessFactor':.25}}
+            {'name':'bright white','pbrMetallicRoughness':{'baseColorFactor':[1.0,.99,.96,1],'metallicFactor':.02,'roughnessFactor':.29}},
+            {'name':'deep navy','pbrMetallicRoughness':{'baseColorFactor':[.008,.028,.075,1],'metallicFactor':.08,'roughnessFactor':.24}},
+            {'name':'blue glass','pbrMetallicRoughness':{'baseColorFactor':[.008,.075,.13,1],'metallicFactor':.12,'roughnessFactor':.12}},
+            {'name':'adler gold','pbrMetallicRoughness':{'baseColorFactor':[1.0,.52,.0,1],'metallicFactor':.02,'roughnessFactor':.3}},
+            {'name':'rescue orange','pbrMetallicRoughness':{'baseColorFactor':[1.0,.075,.0,1],'metallicFactor':.01,'roughnessFactor':.3}},
+            {'name':'metal','pbrMetallicRoughness':{'baseColorFactor':[.62,.68,.72,1],'metallicFactor':.48,'roughnessFactor':.22}},
+            {'name':'deck grey','pbrMetallicRoughness':{'baseColorFactor':[.22,.26,.29,1],'metallicFactor':.02,'roughnessFactor':.55}},
+            {'name':'signal red','pbrMetallicRoughness':{'baseColorFactor':[.82,.01,.015,1],'metallicFactor':.01,'roughnessFactor':.32}}
           ]
+
           meshes=[]
           for g,(pa,ia) in enumerate(ga):
-              for m in range(len(mats)): meshes.append({'primitives':[{'attributes':{'POSITION':pa},'indices':ia,'material':m}]})
+              for m in range(len(mats)):
+                  meshes.append({'primitives':[{'attributes':{'POSITION':pa},'indices':ia,'material':m}]})
           def mi(g,m): return g*len(mats)+m
           nodes=[]
           def N(name,g,m,t,s): nodes.append({'name':name,'mesh':mi(g,m),'translation':t,'scale':s})
-          # IMPORTANT: +X is the bow/forward direction, +Z is up.
+
+          # +X = bow / forward. Two independent hull bows must remain visible.
+          for y in (-3.35,3.35):
+              N('deep individual catamaran hull',1,1,[1.2,y,.0],[30.5,2.25,2.35])
+              N('white individual bow shoulder',1,0,[2.0,y,1.75],[28.0,2.55,1.55])
+              N('gold bow blade',1,3,[8.8,y,1.95],[12.2,2.62,.42])
+              N('navy waterline stripe',0,1,[-2.2,y,1.62],[18.5,2.62,.25])
+
+          # Central deck intentionally stops well behind both bow tips.
+          N('central bridge deck',0,0,[-1.5,0,2.7],[22.0,8.8,1.0])
+          N('forward cross deck',0,0,[6.0,0,3.0],[5.5,6.4,.55])
+          N('foredeck dark inset',0,6,[7.4,0,3.32],[2.8,5.4,.16])
+
+          # Main passenger deck and strong side livery.
+          N('main saloon',0,0,[-1.2,0,4.45],[19.5,7.25,2.25])
+          N('saloon roof',0,0,[-1.7,0,6.15],[19.0,7.65,.38])
+          N('front windshield',1,2,[7.7,0,5.15],[2.7,6.55,1.45])
+          for y in (-3.68,3.68):
+              N('long navy window band',0,2,[-.7,y,5.05],[17.7,.16,1.35])
+              N('large gold flank',0,3,[-6.9,y,3.82],[7.7,.19,1.75])
+              N('gold forward slash',1,3,[4.4,y,4.0],[5.3,.20,.72])
+              N('navy lower flank',0,1,[-4.0,y,3.04],[13.0,.18,.38])
+
+          # Raised bridge / upper passenger structure.
+          N('upper deck floor',0,6,[-.2,0,6.58],[15.4,7.15,.22])
+          N('upper deckhouse',0,0,[2.25,0,7.45],[9.5,5.75,1.65])
+          N('bridge front glass',1,2,[6.45,0,7.72],[2.25,5.55,1.18])
+          for y in (-2.94,2.94):
+              N('bridge side glazing',0,2,[2.6,y,7.77],[6.7,.14,.92])
+          N('bridge roof',0,0,[2.15,0,8.55],[10.1,6.15,.30])
+          N('upper control cabin',0,0,[3.15,0,9.12],[5.3,4.2,.90])
+          N('upper control glass',1,2,[5.25,0,9.22],[1.55,4.05,.58])
+          N('hardtop',0,1,[2.9,0,9.72],[6.4,4.75,.24])
+
+          # Open upper aft deck: furniture, windbreaks, equipment and railings.
+          N('upper aft open deck',0,6,[-7.0,0,6.62],[7.8,7.25,.22])
+          for y in (-2.55,0,2.55):
+              N('upper deck bench',0,1,[-7.6,y,7.0],[2.5,.55,.55])
+              N('upper deck bench back',0,0,[-8.25,y,7.48],[.22,.60,.92])
           for y in (-3.25,3.25):
-              N('lower hull',1,1,[1,y,0],[28,2.4,2.2]); N('upper hull',1,0,[.2,y,1.55],[25.5,2.75,1.55])
-          N('bridge deck',1,0,[-.2,0,2.55],[22,8.5,1])
-          N('saloon',1,0,[-1,0,4],[18.5,7.2,2]); N('dark window band',1,2,[-.4,0,5.15],[17,7.26,1.45]); N('saloon roof',1,0,[-.7,0,6.1],[17.5,7.5,.4])
-          N('forward superstructure',1,0,[5,0,6.6],[7.2,6.3,2.3]); N('bridge glazing',1,2,[5.8,0,7.35],[5.8,6.35,1.15]); N('bridge roof',1,0,[5,0,8.15],[7.4,6.55,.35])
-          N('upper bridge',1,0,[3.5,0,8.8],[4.8,5,1.1]); N('upper bridge glass',1,2,[4.15,0,9.05],[3.4,5.05,.65]); N('hardtop',0,0,[3.35,0,9.6],[5.2,5.3,.3])
-          N('aft deck',0,0,[-11.7,0,2.8],[4.8,8.5,.5]); N('stern platform',0,0,[-14.2,0,1.75],[2,8.1,.35])
-          for y in (-3.78,3.78):
-              N('black side band',1,1,[-1,y,4.75],[17,.22,1.55]); N('gold accent',1,3,[-7.8,y,3.7],[5.4,.25,2.25])
-          N('rescue boat',1,4,[-8,3.9,6.9],[4,1.2,.75]); N('rescue cradle',0,5,[-8,3.4,6.45],[4,.28,.18])
-          N('mast',0,5,[2,0,12],[.18,.18,5]); N('radar',0,0,[2,0,12.8],[3.3,.18,.16])
-          for y in (-1.2,1.2): N('radome',0,0,[.25,y,10.45],[.85,.85,.7])
-          for y in (-4.1,4.1):
-              N('aft rail',0,5,[-10.8,y,4.1],[6.7,.06,.06])
-              for x in (-13,-11.5,-10,-8.5): N('rail post',0,5,[x,y,3.65],[.06,.06,.9])
-          g={'asset':{'version':'2.0','generator':'Sail the World - HSC Adler Cat inspired'},'scene':0,'scenes':[{'nodes':list(range(len(nodes)))}],'nodes':nodes,'meshes':meshes,'materials':mats,'buffers':[{'uri':'data:application/octet-stream;base64,'+base64.b64encode(blob).decode(),'byteLength':len(blob)}],'bufferViews':views,'accessors':acc}
+              N('upper windscreen',0,2,[-5.0,y,7.35],[4.1,.12,1.05])
+              N('upper side rail',0,5,[-7.1,y,7.48],[7.5,.07,.07])
+              for x in (-10,-8.5,-7,-5.5,-4): N('upper rail post',0,5,[x,y,7.05],[.07,.07,.86])
+          N('upper stair landing',0,6,[-10.2,-1.8,6.92],[2.2,1.45,.2])
+          for k in range(5):
+              N('stair step',0,6,[-10.2+k*.34,-1.8,6.45+k*.22],[.7,1.35,.16])
+
+          # Aft deck and stern equipment.
+          N('aft working deck',0,6,[-11.9,0,3.05],[5.0,8.55,.48])
+          N('stern platform',0,6,[-15.0,0,1.82],[2.0,8.15,.32])
+          for y in (-3.3,3.3):
+              N('aft equipment cabinet',0,0,[-11.3,y,4.3],[2.0,.85,1.6])
+              N('orange life raft box',0,4,[-12.2,y,5.28],[1.35,.72,.55])
+
+          # Rescue craft both sides so the ship feels complete from either camera side.
+          for y in (-4.05,4.05):
+              N('rescue boat',1,4,[-7.6,y,6.95],[4.1,1.05,.72])
+              N('rescue cradle',0,5,[-7.8,y*.88,6.48],[4.3,.20,.18])
+
+          # Mast, radar, antenna farm and exhaust/vent equipment.
+          N('main mast',0,5,[1.25,0,12.0],[.20,.20,5.2])
+          N('radar bar',0,0,[1.25,0,13.0],[3.8,.22,.18])
+          N('mast cross tree',0,5,[1.25,0,11.4],[.30,4.0,.14])
+          for y in (-1.55,1.55):
+              N('white radome',0,0,[.1,y,10.55],[.92,.92,.72])
+              N('antenna',0,5,[1.4,y,12.25],[.08,.08,2.2])
+          for x,y in [(-1.8,-1.5),(-1.8,1.5),(-3.0,-.8),(-3.0,.8)]:
+              N('roof vent',0,1,[x,y,9.0],[.7,.55,1.0])
+          N('signal box red',0,7,[.5,0,10.65],[.35,.35,.55])
+
+          # Main deck railings around the stern.
+          for y in (-4.15,4.15):
+              N('aft main rail',0,5,[-11.6,y,4.18],[7.2,.07,.07])
+              for x in (-14.2,-12.8,-11.4,-10,-8.6):
+                  N('aft main rail post',0,5,[x,y,3.70],[.07,.07,.95])
+          N('stern rail',0,5,[-14.6,0,3.95],[.07,8.1,.07])
+
+          # Bow rails remain split so the two noses read as two separate bows.
+          for y in (-4.2,-2.5,2.5,4.2):
+              N('split bow rail',1,5,[10.0,y,3.75],[9.0,.06,.06])
+
+          g={'asset':{'version':'2.0','generator':'Sail the World - expanded HSC Adler Cat inspired'},
+             'scene':0,'scenes':[{'nodes':list(range(len(nodes)))}],'nodes':nodes,
+             'meshes':meshes,'materials':mats,
+             'buffers':[{'uri':'data:application/octet-stream;base64,'+base64.b64encode(blob).decode(),'byteLength':len(blob)}],
+             'bufferViews':views,'accessors':acc}
           open('boat.gltf','w').write(json.dumps(g,separators=(',',':')))
           PY
       - name: Commit model
@@ -68,5 +147,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add boat.gltf
           git diff --cached --quiet && exit 0
-          git commit -m 'Generate Adler Cat inspired HSC model'
+          git commit -m 'Generate expanded twin-bow HSC catamaran model'
           git push
