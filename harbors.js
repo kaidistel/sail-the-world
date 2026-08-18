@@ -17,25 +17,24 @@ window.SAIL_HARBORS=[
 ];
 
 (function(){
-if(!window.Cesium||window.__SAIL_RUNTIME_PATCH_V3)return;
-window.__SAIL_RUNTIME_PATCH_V3=true;
+if(!window.Cesium||window.__SAIL_RUNTIME_PATCH_V4)return;
+window.__SAIL_RUNTIME_PATCH_V4=true;
 
-// Boat: previous +90° correction made the yacht upright but visually backwards.
-// Add another 180° around the local vertical axis only.
+// Boat heading correction only. The model is already upright; switch the
+// horizontal offset from -90° to +90°, which flips the visual bow by 180°
+// relative to the previous live build.
 const originalHprToFixed=Cesium.Transforms.headingPitchRollToFixedFrame;
 Cesium.Transforms.headingPitchRollToFixedFrame=function(origin,hpr,ellipsoid,fixedFrameTransform,result){
-  if(hpr){hpr=new Cesium.HeadingPitchRoll(hpr.heading-Cesium.Math.PI_OVER_TWO,hpr.pitch,hpr.roll);}
+  if(hpr){hpr=new Cesium.HeadingPitchRoll(hpr.heading+Cesium.Math.PI_OVER_TWO,hpr.pitch,hpr.roll);}
   return originalHprToFixed.call(this,origin,hpr,ellipsoid,fixedFrameTransform,result);
 };
 
-// Ask Cesium for more surrounding terrain/imagery before it becomes visible.
-// This costs some extra bandwidth/RAM but makes fast boating much less pop-in heavy.
+// More surrounding terrain/imagery kept ready to reduce pop-in.
 try{
   Cesium.RequestScheduler.maximumRequests=100;
   Cesium.RequestScheduler.maximumRequestsPerServer=12;
 }catch(_){ }
 
-// Patch Viewer construction so every instance gets the same streaming settings.
 try{
   const NativeViewer=Cesium.Viewer;
   Cesium.Viewer=new Proxy(NativeViewer,{
@@ -50,8 +49,7 @@ try{
         viewer.scene.fog.density=0.000035;
       }catch(_){ }
 
-      // Subtle moving wave bands around the camera. These are deliberately
-      // blue/grey translucent highlights, not the old white grid lines.
+      // Subtle moving wave highlights around the camera.
       try{
         const waveMats=[];
         const waveCount=22;
@@ -66,7 +64,7 @@ try{
               const t=performance.now()/1000;
               const band=i-waveCount/2;
               const phase=t*(1.4+sea*.12)+i*.74;
-              const forward=band*13 + Math.sin(phase)*8;
+              const forward=band*13+Math.sin(phase)*8;
               const side=Math.sin(i*1.91+t*.18)*95;
               const hd=viewer.camera.heading||0;
               const north=forward*Math.cos(hd)-side*Math.sin(hd);
