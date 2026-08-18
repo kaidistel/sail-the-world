@@ -15,3 +15,17 @@ window.SAIL_HARBORS=[
 {name:'Emden Außenhafen',lat:53.342610,lon:7.187333,heading:260},
 {name:'Helgoland Südhafen',lat:54.17125,lon:7.89920,heading:350}
 ];
+
+// The custom boat asset is upright now but its visual bow axis is 90° off
+// from the simulator's navigation heading. Apply only a horizontal heading
+// correction; roll/pitch and the model's Z-up orientation remain untouched.
+if(window.Cesium && Cesium.Transforms && !window.__SAIL_BOAT_HEADING_PATCH){
+  window.__SAIL_BOAT_HEADING_PATCH=true;
+  const originalHprToFixed=Cesium.Transforms.headingPitchRollToFixedFrame;
+  Cesium.Transforms.headingPitchRollToFixedFrame=function(origin,hpr,ellipsoid,fixedFrameTransform,result){
+    if(hpr){
+      hpr=new Cesium.HeadingPitchRoll(hpr.heading+Cesium.Math.PI_OVER_TWO,hpr.pitch,hpr.roll);
+    }
+    return originalHprToFixed.call(this,origin,hpr,ellipsoid,fixedFrameTransform,result);
+  };
+}
