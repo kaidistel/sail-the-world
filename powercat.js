@@ -4,48 +4,31 @@ function tri(a,b,c){const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[
 function mesh(name,v,f,mat){const i0=I.length,p0=P.length/3;f.forEach(q=>{for(let k=1;k<q.length-1;k++)tri(v[q[0]],v[q[k]],v[q[k+1]])});parts.push({name,p0,pc:P.length/3-p0,i0,ic:I.length-i0,mat})}
 function box(name,x,y,z,l,w,h,mat){let a=x-l/2,b=x+l/2,c=y-w/2,d=y+w/2,e=z-h/2,g=z+h/2,v=[[a,c,e],[b,c,e],[b,d,e],[a,d,e],[a,c,g],[b,c,g],[b,d,g],[a,d,g]],f=[[0,1,2,3],[4,7,6,5],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]];mesh(name,v,f,mat)}
 function loft(name,sections,mat,y0=0){const v=[],f=[];sections.forEach(s=>{const[x,w,zb,zt]=s;v.push([x,y0-w,zb],[x,y0-w,zt],[x,y0+w,zt],[x,y0+w,zb])});f.push([0,3,2,1]);let z=(sections.length-1)*4;f.push([z,z+1,z+2,z+3]);for(let j=0;j<sections.length-1;j++){let a=j*4,b=a+4;f.push([a,b,b+1,a+1],[a+1,b+1,b+2,a+2],[a+2,b+2,b+3,a+3],[a+3,b+3,b,a])}mesh(name,v,f,mat)}
-function sidePanel(name,side,pts,mat){const y=side;mesh(name,pts.map(p=>[p[0],y,p[1]]),[pts.map((_,i)=>i)],mat)}
-// 0 white, 1 navy, 2 glass, 3 gold, 4 orange, 5 metal, 6 deck, 7 red
-// Two genuine catamaran hulls. +X is bow, +Z is up.
-const lower=[[-15.4,1.05,-1.38,.08],[-11.5,1.13,-1.48,.38],[-5.5,1.16,-1.45,.72],[2.0,1.08,-1.28,.94],[8.5,.82,-.88,.96],[12.6,.43,-.40,.70],[15.7,.025,-.02,.17]];
-const upper=[[-13.9,1.10,.05,1.42],[-8.0,1.18,.20,1.70],[0,1.16,.32,1.88],[7.5,.95,.42,1.82],[12.0,.55,.32,1.42],[15.25,.045,.10,.43]];
+function sidePanel(name,side,pts,mat){mesh(name,pts.map(p=>[p[0],side,p[1]]),[pts.map((_,i)=>i)],mat)}
+const lower=[[-15.4,1.05,-1.38,.08],[-11.5,1.13,-1.48,.38],[-5.5,1.16,-1.45,.72],[2,1.08,-1.28,.94],[8.5,.82,-.88,.96],[12.6,.43,-.40,.70],[15.7,.025,-.02,.17]],upper=[[-13.9,1.10,.05,1.42],[-8,1.18,.20,1.70],[0,1.16,.32,1.88],[7.5,.95,.42,1.82],[12,.55,.32,1.42],[15.25,.045,.10,.43]];
 for(const y of[-3.45,3.45]){loft('NavyHull',lower,1,y);loft('WhiteHullShoulder',upper,0,y)}
-// Bridge deck ends before the bow tips, keeping a large visible tunnel between both noses.
-loft('BridgeDeck',[[-13.5,4.35,1.48,2.05],[-7.0,4.35,1.55,2.18],[1.0,4.25,1.58,2.28],[7.8,3.55,1.52,2.20]],0);
-box('AftWorkingDeck',-12.9,0,2.28,4.5,8.55,.28,6);box('SternPlatform',-15.1,0,1.35,1.4,8.3,.25,6);
-// One continuous passenger superstructure instead of stacked boxes.
-loft('PassengerBody',[[-10.9,3.65,2.15,4.25],[-7.0,3.78,2.20,4.55],[-1.0,3.72,2.25,4.78],[4.4,3.42,2.28,4.92],[8.0,2.72,2.24,4.42]],0);
-// Long side glazing follows the shape of the saloon.
-for(const s of[-1,1]){
-  const y=s*3.76;sidePanel('SaloonWindowBand',y,[[-9.8,3.20],[-7.0,3.35],[-1.0,3.48],[4.2,3.52],[7.0,3.35],[6.6,4.30],[3.8,4.48],[-1.0,4.42],[-7.0,4.18],[-9.8,3.95]],2);
-  sidePanel('GoldLivery',s*3.79,[[-10.6,2.42],[-4.4,2.52],[.4,2.58],[5.8,2.70],[7.2,3.10],[4.8,3.36],[.3,3.00],[-5.0,2.95],[-10.6,3.36]],3);
-  sidePanel('NavyBelt',s*3.81,[[-11.4,2.15],[6.2,2.22],[7.0,2.50],[-11.4,2.47]],1);
-}
-// Sloped integrated bridge, lower and wider than before.
-loft('BridgeHouse',[[-1.4,3.18,4.50,5.82],[2.0,3.02,4.56,6.12],[5.2,2.62,4.48,6.18],[7.25,2.15,4.18,5.65]],0);
-mesh('BridgeFrontGlass',[[7.30,-2.08,4.55],[7.30,2.08,4.55],[5.30,2.42,6.02],[5.30,-2.42,6.02]],[[0,1,2,3]],2);
-for(const s of[-1,1])sidePanel('BridgeSideGlass',s*3.04,[[-.8,4.92],[2.0,4.98],[5.0,4.87],[4.65,5.86],[2.0,5.95],[-.65,5.72]],2);
-loft('BridgeRoof',[[-1.6,3.25,6.02,6.25],[2.0,3.15,6.18,6.42],[5.35,2.72,6.12,6.36]],0);
-// Upper deck is now connected directly to bridge roof, not floating above it.
-loft('UpperDeckBase',[[-8.7,3.25,6.18,6.40],[-3.0,3.30,6.22,6.43],[2.0,3.12,6.28,6.48],[4.8,2.70,6.25,6.44]],6);
-loft('UpperWheelhouse',[[-.8,2.32,6.42,7.65],[2.0,2.25,6.46,7.85],[4.65,1.86,6.40,7.56]],0);
-mesh('UpperFrontGlass',[[4.70,-1.80,6.65],[4.70,1.80,6.65],[2.90,2.06,7.68],[2.90,-2.06,7.68]],[[0,1,2,3]],2);
-for(const s of[-1,1])sidePanel('UpperSideGlass',s*2.30,[[-.45,6.72],[2.0,6.78],[3.85,6.70],[3.35,7.55],[1.8,7.67],[-.3,7.45]],2);
-loft('UpperHardtop',[[-1.1,2.60,7.68,7.88],[2.0,2.55,7.82,8.04],[4.0,2.18,7.68,7.88]],1);
-// Open aft passenger deck with compact furniture instead of huge wall-like blocks.
-for(const y of[-2.35,0,2.35]){box('Seat',-5.7,y,6.72,2.2,.48,.32,1);box('SeatBack',-6.25,y,7.00,.12,.54,.62,0)}
-for(const y of[-3.16,3.16]){box('UpperRail',-6.0,y,7.02,5.2,.055,.055,5);for(const x of[-8.2,-6.8,-5.4,-4.0])box('UpperPost',x,y,6.73,.055,.055,.62,5)}
-// Rescue craft, exhausts and roof equipment.
-for(const y of[-4.10,4.10]){loft('RescueBoat',[[-9.5,.62,4.92,5.42],[-7.2,.72,4.90,5.55],[-5.6,.12,5.00,5.30]],4,y);box('Davits',-7.5,y*.88,4.70,4.5,.15,.15,5)}
-for(const y of[-1.35,1.35]){box('Exhaust',-2.6,y,8.28,.62,.54,.82,1);box('Radome',-.8,y,8.45,.78,.78,.62,0)}
-box('MainMast',.4,0,10.15,.17,.17,4.25,5);box('Radar',.4,0,11.52,3.5,.18,.15,0);box('CrossTree',.4,0,10.55,.22,3.8,.12,5);for(const y of[-1.5,1.5])box('Antenna',.4,y,11.25,.06,.06,2.0,5);box('SignalRed',-.1,0,9.25,.28,.28,.42,7);
-// Rails around main aft deck and separate bow rails emphasize the twin-bow layout.
-for(const y of[-4.20,4.20]){box('AftRail',-11.8,y,3.18,6.2,.055,.055,5);for(const x of[-14,-12.5,-11,-9.5])box('AftPost',x,y,2.84,.055,.055,.74,5)}
-for(const y of[-4.38,-2.52,2.52,4.38]){box('SplitBowRail',11.0,y,2.12,7.0,.05,.05,5);for(const x of[8.2,10,11.8,13.5])box('BowPost',x,y,1.85,.05,.05,.56,5)}
-const specs=[[[.97,.975,.965,1],.02,.30],[[.006,.015,.040,1],.08,.25],[[.006,.065,.125,1],.06,.14],[[1.0,.45,.015,1],.02,.30],[[1.0,.08,.01,1],.01,.32],[[.70,.73,.74,1],.58,.21],[[.27,.29,.30,1],.02,.54],[[.90,.01,.01,1],.01,.30]];
-const mats=specs.map(m=>({pbrMetallicRoughness:{baseColorFactor:m[0],metallicFactor:m[1],roughnessFactor:m[2]},doubleSided:true}));
-function b64(ab){let u=new Uint8Array(ab),s='',n=0x8000;for(let i=0;i<u.length;i+=n)s+=String.fromCharCode.apply(null,u.subarray(i,i+n));return btoa(s)}
-const pa=new Float32Array(P),na=new Float32Array(N),ia=new Uint16Array(I),pbs=new Uint8Array(pa.buffer),nbs=new Uint8Array(na.buffer),ibs=new Uint8Array(ia.buffer),pad=x=>(4-x%4)%4,oN=pbs.length+pad(pbs.length),oI=oN+nbs.length+pad(nbs.length),buf=new Uint8Array(oI+ibs.length);buf.set(pbs,0);buf.set(nbs,oN);buf.set(ibs,oI);const views=[{buffer:0,byteOffset:0,byteLength:pbs.length,target:34962},{buffer:0,byteOffset:oN,byteLength:nbs.length,target:34962},{buffer:0,byteOffset:oI,byteLength:ibs.length,target:34963}],acc=[],meshes=[];
-parts.forEach(p=>{let vals=[];for(let i=0;i<p.pc;i++)vals.push([P[(p.p0+i)*3],P[(p.p0+i)*3+1],P[(p.p0+i)*3+2]]);let a=acc.length;acc.push({bufferView:0,byteOffset:p.p0*12,componentType:5126,count:p.pc,type:'VEC3',min:[0,1,2].map(k=>Math.min(...vals.map(v=>v[k]))),max:[0,1,2].map(k=>Math.max(...vals.map(v=>v[k])))},{bufferView:1,byteOffset:p.p0*12,componentType:5126,count:p.pc,type:'VEC3'},{bufferView:2,byteOffset:p.i0*2,componentType:5123,count:p.ic,type:'SCALAR'});meshes.push({name:p.name,primitives:[{attributes:{POSITION:a,NORMAL:a+1},indices:a+2,material:p.mat}]})});
-const g={asset:{version:'2.0',generator:'Sail the World Adler Cat HSC v5 lofted'},scene:0,scenes:[{nodes:meshes.map((_,i)=>i)}],nodes:meshes.map((_,i)=>({mesh:i})),meshes,materials:mats,buffers:[{uri:'data:application/octet-stream;base64,'+b64(buf.buffer),byteLength:buf.byteLength}],bufferViews:views,accessors:acc};return URL.createObjectURL(new Blob([JSON.stringify(g)],{type:'model/gltf+json'}));
-};
+loft('BridgeDeck',[[-13.5,4.35,1.48,2.05],[-7,4.35,1.55,2.18],[1,4.25,1.58,2.28],[7.8,3.55,1.52,2.20]],0);box('AftWorkingDeck',-12.9,0,2.28,4.5,8.55,.28,6);box('SternPlatform',-15.1,0,1.35,1.4,8.3,.25,6);
+// Large continuous lower passenger deck.
+loft('PassengerBody',[[-11.4,3.72,2.12,4.28],[-7.5,3.82,2.18,4.55],[-1,3.76,2.22,4.80],[4.6,3.46,2.25,4.94],[8.2,2.72,2.20,4.42]],0);
+for(const s of[-1,1]){sidePanel('SaloonWindows',s*3.79,[[-10.5,3.18],[-7.2,3.34],[-1,3.47],[4.3,3.52],[7.1,3.34],[6.55,4.32],[3.7,4.49],[-1,4.44],[-7.1,4.20],[-10.5,3.96]],2);sidePanel('GoldLivery',s*3.82,[[-11,2.38],[-5.2,2.48],[.4,2.55],[6.1,2.70],[7.35,3.12],[4.7,3.38],[.2,3.02],[-5.4,2.94],[-11,3.34]],3);sidePanel('NavyBelt',s*3.84,[[-11.8,2.12],[6.3,2.20],[7.1,2.50],[-11.8,2.47]],1)}
+// Main bridge and forward glazing.
+loft('BridgeHouse',[[-2.0,3.28,4.45,5.88],[1.5,3.15,4.50,6.18],[5.1,2.70,4.44,6.22],[7.45,2.12,4.14,5.62]],0);mesh('BridgeFrontGlass',[[7.5,-2.05,4.48],[7.5,2.05,4.48],[5.25,2.48,6.08],[5.25,-2.48,6.08]],[[0,1,2,3]],2);for(const s of[-1,1])sidePanel('BridgeSideGlass',s*3.12,[[-1.4,4.88],[1.5,4.96],[4.95,4.83],[4.6,5.92],[1.5,6.03],[-1.25,5.76]],2);loft('BridgeRoof',[[-2.2,3.35,6.00,6.25],[1.4,3.27,6.16,6.42],[5.45,2.78,6.10,6.36]],0);
+// Full second passenger deck behind the bridge: this was the missing mass.
+loft('UpperPassengerBody',[[-10.0,3.12,6.20,7.42],[-6.2,3.20,6.22,7.60],[-2.0,3.16,6.25,7.68],[1.5,2.88,6.28,7.72],[4.3,2.42,6.25,7.48]],0);
+for(const s of[-1,1]){sidePanel('UpperWindowBand',s*3.18,[[-9.3,6.55],[-6.1,6.62],[-2.0,6.68],[1.3,6.72],[3.8,6.62],[3.35,7.35],[1.1,7.47],[-2,7.43],[-6.1,7.35],[-9.3,7.20]],2);sidePanel('UpperGoldTrim',s*3.21,[[-9.7,6.27],[3.7,6.31],[4.1,6.50],[-9.7,6.48]],3)}
+// Integrated wheelhouse on top, compact but substantial.
+loft('TopWheelhouse',[[-2.0,2.38,7.48,8.65],[.8,2.30,7.52,8.88],[3.8,1.88,7.46,8.55]],0);mesh('TopFrontGlass',[[3.85,-1.82,7.68],[3.85,1.82,7.68],[2.05,2.05,8.68],[2.05,-2.05,8.68]],[[0,1,2,3]],2);for(const s of[-1,1])sidePanel('TopSideGlass',s*2.34,[[-1.65,7.72],[.8,7.78],[3.05,7.68],[2.6,8.48],[.7,8.67],[-1.5,8.48]],2);loft('TopRoof',[[-2.25,2.60,8.60,8.82],[.7,2.55,8.82,9.04],[3.2,2.12,8.55,8.77]],1);
+// Open aft sun/passenger deck attached to the second deck.
+box('UpperAftDeck',-11.7,0,6.36,3.2,6.4,.20,6);for(const y of[-2.35,0,2.35]){box('Bench',-11.6,y,6.68,1.7,.46,.30,1);box('BenchBack',-12.05,y,6.94,.12,.52,.58,0)}
+for(const y of[-3.08,3.08]){box('UpperAftRail',-11.8,y,7.04,3.4,.055,.055,5);for(const x of[-13.2,-12.2,-11.2,-10.2])box('UpperAftPost',x,y,6.70,.055,.055,.72,5)}
+// Equipment-rich roof: funnels, vents, radomes, mast and radar.
+for(const y of[-1.45,1.45]){loft('Funnel',[[-3.6,.48,8.75,9.25],[-2.9,.40,8.78,9.72],[-2.2,.32,8.80,9.82]],1,y);box('Radome',-.6,y,9.32,.82,.82,.68,0);box('Vent',-5.0,y,8.92,.60,.50,.72,5)}
+box('MainMast',.45,0,11.35,.18,.18,4.9,5);box('RadarBar',.45,0,12.78,3.8,.18,.16,0);box('CrossTree',.45,0,11.72,.22,4.1,.13,5);for(const y of[-1.55,1.55])box('Antenna',.45,y,12.38,.06,.06,2.25,5);box('SignalRed',-.05,0,10.42,.30,.30,.46,7);
+// Lifeboats, life rafts and davits on both sides.
+for(const y of[-4.08,4.08]){loft('RescueBoat',[[-9.7,.65,4.95,5.40],[-7.5,.72,4.92,5.58],[-5.6,.12,5.02,5.28]],4,y);box('DavitBeam',-7.6,y*.88,4.75,4.6,.14,.14,5);box('LifeRaftA',-3.8,y*.92,5.15,1.15,.65,.55,4);box('LifeRaftB',-2.4,y*.92,5.15,1.15,.65,.55,4)}
+// Stern stair towers visually connect all decks.
+for(const y of[-3.45,3.45]){loft('SternTower',[[-14.0,.62,2.18,4.30],[-12.6,.72,2.20,5.95],[-11.0,.78,2.25,6.25]],0,y);for(let k=0;k<6;k++)box('StairStep',-13.7+k*.42,y,2.55+k*.48,.48,1.25,.12,6)}
+// Rails.
+for(const y of[-4.20,4.20]){box('AftRail',-12.0,y,3.18,6,.055,.055,5);for(const x of[-14,-12.5,-11,-9.5])box('AftPost',x,y,2.84,.055,.055,.74,5)}for(const y of[-4.38,-2.52,2.52,4.38]){box('BowRail',11,y,2.12,7,.05,.05,5);for(const x of[8.2,10,11.8,13.5])box('BowPost',x,y,1.85,.05,.05,.56,5)}
+const specs=[[[.97,.975,.965,1],.02,.30],[[.006,.015,.040,1],.08,.25],[[.006,.065,.125,1],.06,.14],[[1,.45,.015,1],.02,.30],[[1,.08,.01,1],.01,.32],[[.70,.73,.74,1],.58,.21],[[.27,.29,.30,1],.02,.54],[[.90,.01,.01,1],.01,.30]],mats=specs.map(m=>({pbrMetallicRoughness:{baseColorFactor:m[0],metallicFactor:m[1],roughnessFactor:m[2]},doubleSided:true}));
+function b64(ab){let u=new Uint8Array(ab),s='',n=0x8000;for(let i=0;i<u.length;i+=n)s+=String.fromCharCode.apply(null,u.subarray(i,i+n));return btoa(s)}const pa=new Float32Array(P),na=new Float32Array(N),ia=new Uint16Array(I),pbs=new Uint8Array(pa.buffer),nbs=new Uint8Array(na.buffer),ibs=new Uint8Array(ia.buffer),pad=x=>(4-x%4)%4,oN=pbs.length+pad(pbs.length),oI=oN+nbs.length+pad(nbs.length),buf=new Uint8Array(oI+ibs.length);buf.set(pbs);buf.set(nbs,oN);buf.set(ibs,oI);const views=[{buffer:0,byteOffset:0,byteLength:pbs.length,target:34962},{buffer:0,byteOffset:oN,byteLength:nbs.length,target:34962},{buffer:0,byteOffset:oI,byteLength:ibs.length,target:34963}],acc=[],meshes=[];parts.forEach(p=>{let vals=[];for(let i=0;i<p.pc;i++)vals.push([P[(p.p0+i)*3],P[(p.p0+i)*3+1],P[(p.p0+i)*3+2]]);let a=acc.length;acc.push({bufferView:0,byteOffset:p.p0*12,componentType:5126,count:p.pc,type:'VEC3',min:[0,1,2].map(k=>Math.min(...vals.map(v=>v[k]))),max:[0,1,2].map(k=>Math.max(...vals.map(v=>v[k])))},{bufferView:1,byteOffset:p.p0*12,componentType:5126,count:p.pc,type:'VEC3'},{bufferView:2,byteOffset:p.i0*2,componentType:5123,count:p.ic,type:'SCALAR'});meshes.push({name:p.name,primitives:[{attributes:{POSITION:a,NORMAL:a+1},indices:a+2,material:p.mat}]})});const g={asset:{version:'2.0',generator:'Sail the World Adler Cat HSC v6 complete superstructure'},scene:0,scenes:[{nodes:meshes.map((_,i)=>i)}],nodes:meshes.map((_,i)=>({mesh:i})),meshes,materials:mats,buffers:[{uri:'data:application/octet-stream;base64,'+b64(buf.buffer),byteLength:buf.byteLength}],bufferViews:views,accessors:acc};return URL.createObjectURL(new Blob([JSON.stringify(g)],{type:'model/gltf+json'}))};
