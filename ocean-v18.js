@@ -28,7 +28,6 @@ window.createSailOceanV18=function(Cesium,viewer,state){
     in float v_ring;
     in float v_h;
     in vec3 v_nEC;
-    out vec4 out_FragColor;
     void main(){vec3 N=normalize(v_nEC);vec3 L=normalize(czm_sunDirectionEC);float ndl=max(dot(N,L),0.0);float slope=1.0-clamp(abs(N.z),0.0,1.0);float fres=pow(slope,2.4);float spec=pow(max(dot(reflect(-L,N),vec3(0.0,0.0,1.0)),0.0),38.0);float crest=smoothstep(.28,.70,v_h)*.12;vec3 deep=vec3(.010,.085,.125);vec3 sky=vec3(.17,.40,.52);vec3 col=mix(deep,sky,.14+fres*.58+ndl*.07)+spec*.46+crest;float alpha=.60*(1.0-smoothstep(.68,1.0,v_ring));out_FragColor=vec4(col,alpha);}
   `;
   const appearance=new Cesium.Appearance({translucent:true,closed:false,renderState:{depthTest:{enabled:true},depthMask:false,blending:Cesium.BlendingState.ALPHA_BLEND,cull:{enabled:false}},vertexShaderSource:vs,fragmentShaderSource:fs});
