@@ -1,20 +1,21 @@
 window.createSailOceanV18=function(Cesium,viewer,state){
   const rings=54,segs=128,radius=1500;
-  const pos=[],st=[],ring=[],local=[];
+  const pos=[],st=[],ring=[],local=[],batch=[];
   const origin=Cesium.Cartesian3.fromDegrees(state.lon,state.lat,.05);
   const initialENU=Cesium.Transforms.eastNorthUpToFixedFrame(origin);
   const inverseInitial=Cesium.Matrix4.inverseTransformation(initialENU,new Cesium.Matrix4());
-  function addLocal(x,y,q,u,v){const world=Cesium.Matrix4.multiplyByPoint(initialENU,new Cesium.Cartesian3(x,y,0),new Cesium.Cartesian3());pos.push(world.x,world.y,world.z);st.push(u,v);ring.push(q);local.push(x,y)}
+  function addLocal(x,y,q,u,v){const world=Cesium.Matrix4.multiplyByPoint(initialENU,new Cesium.Cartesian3(x,y,0),new Cesium.Cartesian3());pos.push(world.x,world.y,world.z);st.push(u,v);ring.push(q);local.push(x,y);batch.push(0)}
   addLocal(0,0,0,.5,.5);
   for(let r=1;r<=rings;r++){const q=r/rings,rr=radius*Math.pow(q,1.72);for(let j=0;j<segs;j++){const a=j/segs*Math.PI*2,x=Math.cos(a)*rr,y=Math.sin(a)*rr;addLocal(x,y,q,.5+.5*Math.cos(a)*q,.5+.5*Math.sin(a)*q)}}
   const idx=[];for(let j=0;j<segs;j++)idx.push(0,1+j,1+(j+1)%segs);for(let r=1;r<rings;r++){const a0=1+(r-1)*segs,b0=1+r*segs;for(let j=0;j<segs;j++){const n=(j+1)%segs;idx.push(a0+j,b0+j,b0+n,a0+j,b0+n,a0+n)}}
-  const geometry=new Cesium.Geometry({attributes:{position:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.DOUBLE,componentsPerAttribute:3,values:new Float64Array(pos)}),st:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:2,values:new Float32Array(st)}),a_ring:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:1,values:new Float32Array(ring)}),a_local:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:2,values:new Float32Array(local)})},indices:Cesium.IndexDatatype.createTypedArray(pos.length/3,idx),primitiveType:Cesium.PrimitiveType.TRIANGLES,boundingSphere:new Cesium.BoundingSphere(origin,radius+20)});
+  const geometry=new Cesium.Geometry({attributes:{position:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.DOUBLE,componentsPerAttribute:3,values:new Float64Array(pos)}),st:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:2,values:new Float32Array(st)}),a_ring:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:1,values:new Float32Array(ring)}),a_local:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:2,values:new Float32Array(local)}),batchId:new Cesium.GeometryAttribute({componentDatatype:Cesium.ComponentDatatype.FLOAT,componentsPerAttribute:1,values:new Float32Array(batch)})},indices:Cesium.IndexDatatype.createTypedArray(pos.length/3,idx),primitiveType:Cesium.PrimitiveType.TRIANGLES,boundingSphere:new Cesium.BoundingSphere(origin,radius+20)});
   const vs=`
     in vec3 position3DHigh;
     in vec3 position3DLow;
     in vec2 st;
     in float a_ring;
     in vec2 a_local;
+    in float batchId;
     out vec2 v_st;
     out float v_ring;
     out float v_h;
