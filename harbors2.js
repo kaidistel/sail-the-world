@@ -1,0 +1,27 @@
+// Sail the World V7 — curated berth/docking points. Coordinates target actual marina/berth areas, not generic harbour centres.
+window.SAIL_HARBORS=[
+  {name:'Nassauhafen Wilhelmshaven · Schwimmsteg',lat:53.51384,lon:8.15146,heading:10},
+  {name:'Borkum · Burkana-Hafen Steg',lat:53.55755,lon:6.74933,heading:35},
+  {name:'Juist · Segelklub Schwimmsteg',lat:53.67326,lon:6.99874,heading:20},
+  {name:'Norderney · SVN Yachthafen',lat:53.70288,lon:7.16567,heading:15},
+  {name:'Baltrum · BBC Yachthafen Ostseite',lat:53.72303,lon:7.36756,heading:25},
+  {name:'Langeoog · Seglerverein Steganlage',lat:53.72717,lon:7.49763,heading:345},
+  {name:'Spiekeroog · SSC Yachthafen',lat:53.76484,lon:7.69769,heading:18},
+  {name:'Wangerooge · WYC Steganlage',lat:53.77449,lon:7.86843,heading:20},
+  {name:'Norddeich · Yacht-Club Norden',lat:53.64492,lon:7.14838,heading:350},
+  {name:'Neßmersiel · Sportboothafen',lat:53.68272,lon:7.35895,heading:350},
+  {name:'Bensersiel · Yachthafen',lat:53.67704,lon:7.57297,heading:350},
+  {name:'Neuharlingersiel · NYC Schwimmsteg',lat:53.70236,lon:7.70625,heading:350},
+  {name:'Harlesiel · Sportboothafen',lat:53.70660,lon:7.80745,heading:350},
+  {name:'Emden · Emder Yacht Club Außenhafen',lat:53.33778,lon:7.18389,heading:260},
+  {name:'Helgoland · Südhafen Sportbootsteg',lat:54.17138,lon:7.89395,heading:350},
+  {name:'Cuxhaven · SVC Yachthafen Mittelschlengel',lat:53.87427,lon:8.70608,heading:105},
+  {name:'Cuxhaven · LCF Amerikahafen Steg',lat:53.86795,lon:8.71644,heading:100},
+  {name:'Hooksiel · Marina dritte Steganlage',lat:53.63378,lon:8.04564,heading:95},
+  {name:'Hooksiel · WSV Steganlage',lat:53.63149,lon:8.03942,heading:95},
+  {name:'Hooksiel · Werft erste Steganlage',lat:53.64038,lon:8.07774,heading:95},
+  {name:'Hooksiel · Alter Hafen',lat:53.62712,lon:8.02884,heading:90},
+  {name:'Bremerhaven · Lloyd Marina Neuer Hafen',lat:53.54437,lon:8.56805,heading:350},
+  {name:'Fedderwardersiel · BYC Yachthafen',lat:53.59462,lon:8.35980,heading:350},
+  {name:'Dangast · Hafen Steg',lat:53.44625,lon:8.10825,heading:20}
+];
