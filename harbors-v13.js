@@ -46,3 +46,4 @@ window.SAIL_HARBORS_V13=[
 {name:'Calais · Ferry Terminal',lat:50.9667,lon:1.8688,heading:250},
 {name:'Calais · Port de Plaisance',lat:50.9598,lon:1.8504,heading:210}
 ];
+(()=>{const s=document.createElement('script');s.src='./real3d-v20.js?v=43eb763e';s.async=true;document.head.appendChild(s)})();
