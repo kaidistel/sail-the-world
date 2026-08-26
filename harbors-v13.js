@@ -40,5 +40,9 @@ window.SAIL_HARBORS_V13=[
 {name:'Helgoland · Südhafen Sportbootsteg',lat:54.17138,lon:7.89395,heading:350},
 {name:'Helgoland · Südhafen Fährterminal',lat:54.17462,lon:7.89387,heading:350},
 {name:'Helgoland · Binnenhafen Katamaran-Kaje',lat:54.17890,lon:7.88981,heading:0},
-{name:'Helgoland · Nordosthafen Schwimmstege',lat:54.18382,lon:7.88991,heading:0}
+{name:'Helgoland · Nordosthafen Schwimmstege',lat:54.18382,lon:7.88991,heading:0},
+{name:'Dover · Eastern Docks Ferry Terminal',lat:51.1267,lon:1.3335,heading:285},
+{name:'Dover · Cruise Terminal / Western Docks',lat:51.1195,lon:1.3138,heading:80},
+{name:'Calais · Ferry Terminal',lat:50.9667,lon:1.8688,heading:250},
+{name:'Calais · Port de Plaisance',lat:50.9598,lon:1.8504,heading:210}
 ];
